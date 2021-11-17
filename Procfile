@@ -1,1 +1,1 @@
-web: bin/discord-web
+web: bin/webserver

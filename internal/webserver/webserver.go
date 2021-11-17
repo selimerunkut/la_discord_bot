@@ -285,8 +285,13 @@ func Init(c config.Config) (err error) {
 	})
 
 	// TODO Upload memberIds file
+	port := os.Getenv("PORT")
 
-	err = r.Run(":" + c.ServerPort)
+	if port == "" {
+		log.Fatal("$PORT must be set")
+	}
+
+	err = r.Run(":" + port)
 	if err != nil {
 		return err
 	}
