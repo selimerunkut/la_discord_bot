@@ -1,11 +1,11 @@
 module la_discord_bot
 
-go 1.17
+go 1.12
 
 require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/gorilla/websocket v1.4.0
-	golang.org/x/crypto v0.0.0-20211108221036-ceb1ce70b4fa
+	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 )
 
 require (

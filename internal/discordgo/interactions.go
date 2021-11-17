@@ -2,8 +2,8 @@ package discordgo
 
 import (
 	"bytes"
-	"crypto/ed25519"
 	"encoding/hex"
+	"golang.org/x/crypto/ed25519"
 	"io"
 	"io/ioutil"
 	"net/http"
