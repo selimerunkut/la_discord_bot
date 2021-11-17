@@ -64,7 +64,7 @@ func msglog(msgL, caller int, format string, a ...interface{}) {
 	}
 }
 
-// helper function that wraps msglog for the Session struct
+// helpers function that wraps msglog for the Session struct
 // This adds a check to insure the message is only logged
 // if the session log level is equal or higher than the
 // message log level
@@ -77,7 +77,7 @@ func (s *Session) log(msgL int, format string, a ...interface{}) {
 	msglog(msgL, 2, format, a...)
 }
 
-// helper function that wraps msglog for the VoiceConnection struct
+// helpers function that wraps msglog for the VoiceConnection struct
 // This adds a check to insure the message is only logged
 // if the voice connection log level is equal or higher than the
 // message log level
@@ -90,7 +90,7 @@ func (v *VoiceConnection) log(msgL int, format string, a ...interface{}) {
 	msglog(msgL, 2, format, a...)
 }
 
-// printJSON is a helper function to display JSON data in a easy to read format.
+// printJSON is a helpers function to display JSON data in a easy to read format.
 /* NOT USED ATM
 func printJSON(body []byte) {
 	var prettyJSON bytes.Buffer

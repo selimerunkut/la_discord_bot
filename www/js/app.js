@@ -19,6 +19,18 @@ function form() {
             2: "Send"
         },
         rs: false,
+        send: {
+            token: "",
+            guild_id: "",
+            invite: "",
+            delay_min: "",
+            delay_max: "",
+            message: "",
+        },
+        token: "",
+        guildStores: [],
+
+        successMessage: false,
         errorGetInfo: false,
         errorJoin: false,
         errorParse: false,
@@ -31,7 +43,32 @@ function form() {
         currentChannelId: false,
         clientId: "",
         invite: "",
-        inputElements: [],
+        sendTaskButtonClick: async function (event) {
+            this.errorSend = false
+            this.send.token = this.token
+            let response = await fetch('/api/tasks/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json;charset=utf-8'
+                },
+                body: JSON.stringify(this.send)
+            });
+            if (response.ok) {
+                let json = await response.json();
+                this.updateTasks()
+                this.successMessage = "Send Task Created"
+            } else {
+                let json = { error: "" }
+                try {
+                    json = await response.json();
+                } catch (e) {
+                    json = { error: "505 Internal Server Error"}
+                }
+                console.log(json)
+                this.errorSend = json.error
+            }
+
+        },
         getInfoButtonClick: async function (event) {
             // console.log(event)
             this.rs = true
@@ -43,6 +80,7 @@ function form() {
             this.errorJoin = false
             this.errorParse = false
             this.errorSend = false
+            this.successMessage = false
             this.clientId = ""
 
             let auth = "Bot" //document.getElementById("auth").value
@@ -57,7 +95,12 @@ function form() {
                 // console.log(this.guilds)
                 // this.selectGuildsChange()
             } else {
-                let json = await response.json();
+                let json = { error: "" }
+                try {
+                    json = await response.json();
+                } catch (e) {
+                    json = { error: "505 Internal Server Error"}
+                }
                 console.log(json)
                 this.errorGetInfo = json.error
                 // alert("HTTP-Error: " + response.status);
@@ -70,6 +113,7 @@ function form() {
         parseMembersButtonClick: async function (event) {
             this.rs = true
             this.errorParse = false
+            this.successMessage = false
 
             let channel = ""
             // console.log(channel)
@@ -88,9 +132,15 @@ function form() {
             if (response.ok) {
                 let json = await response.json();
                 await this.updateTasks()
-                console.log(json)
+                this.successMessage = "Parse Task Created"
+                // console.log(json)
             } else {
-                let json = await response.json();
+                let json = { error: "" }
+                try {
+                    json = await response.json();
+                } catch (e) {
+                    json = { error: "505 Internal Server Error"}
+                }
                 console.log(json)
                 this.errorParse = json.error
                 // alert("HTTP-Error: " + response.status );
@@ -111,8 +161,14 @@ function form() {
                     this.guilds = json.guilds
                     console.log(json)
                     this.invite = ""
+                    this.successMessage = "Join Success"
                 } else {
-                    let json = await response.json()
+                    let json = { error: "" }
+                    try {
+                        json = await response.json();
+                    } catch (e) {
+                        json = { error: "505 Internal Server Error"}
+                    }
                     console.log(json)
                     this.errorJoin = json.error
                     // alert("HTTP-Error: " + response.status );
@@ -173,6 +229,15 @@ function form() {
                 .then(tasks => {
                     self.tasks = tasks.tasks
                     console.log(tasks)
+                })
+        },
+        updateGuildStores: function () {
+            self = this
+            fetch('/api/guilds/store')
+                .then(response => response.json())
+                .then(stores => {
+                    self.guildStores = stores.stores
+                    console.log(stores)
                 })
         },
     };

@@ -85,6 +85,7 @@ func (T *Task) ParseMembersUser() (err error) {
 						guildStore.MembersIds[item.Member.User.ID] = guild.Member{
 							MemberId: item.Member.User.ID,
 						}
+						T.Log.Printf("%v %v", item.Member.User.ID, item.Member.User.Username)
 						memCount++
 						T.ParseCount++ // = len(T.ParseMemberIds)
 					}

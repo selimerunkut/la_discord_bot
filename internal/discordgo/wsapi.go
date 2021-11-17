@@ -923,6 +923,17 @@ func (s *Session) RequestLazyGuildMembers(guildID string, channel string, pages 
 		Members:    members,
 		Channels:   map[string][][]int{channel: pages},
 	}
+	if len(pages[0]) > 1 {
+		data = requestLazyData{
+			GuildID: guildID,
+			//Typing:     typing,
+			//Threads:    threads,
+			//Activities: activities,
+			//Members:    members,
+			Channels: map[string][][]int{channel: pages},
+		}
+
+	}
 	err = s.requestLazyGuildMembers(data)
 	return
 }

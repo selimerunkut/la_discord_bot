@@ -146,7 +146,7 @@ func (s *Store) LoadMembers() (err error) {
 	fileScanner := bufio.NewScanner(file)
 	for fileScanner.Scan() {
 		id := fileScanner.Text()
-		if _, err = regexp.Match(`\d+`, []byte(id)); err != nil {
+		if _, err = regexp.Match(`\d+`, []byte(id)); err == nil {
 			s.MembersIds[id] = Member{
 				MemberId: id,
 			}
@@ -182,4 +182,28 @@ func (s *Store) SaveMembers() (err error) {
 	}
 
 	return nil
+}
+
+func (s *Store) LoadMembersSlice() (slice []Member, err error) {
+	dir := s.Config.PathToStorage + "guilds/" + s.GuildId
+	filename := dir + "/" + s.GuildId + ".members"
+
+	if !helpers.FileExists(dir) {
+		err = helpers.Mkdir(dir, 0777)
+		if err != nil {
+			return slice, err
+		}
+	}
+
+	file, _ := os.Open(filename)
+	fileScanner := bufio.NewScanner(file)
+	for fileScanner.Scan() {
+		id := fileScanner.Text()
+		if _, err = regexp.Match(`\d+`, []byte(id)); err == nil {
+			slice = append(slice, Member{
+				MemberId: id,
+			})
+		}
+	}
+	return slice, nil
 }

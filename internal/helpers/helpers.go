@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"la_discord_bot/internal/discordgo"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -194,4 +196,45 @@ func CountLinesInFile(filename string) (count int, err error) {
 	}
 
 	return count, nil
+}
+
+func SleepInterval(min, max float64) {
+	minMilliseconds := int64(min * 1000)
+	maxMilliseconds := int64(max * 1000)
+	duration := MtRand(minMilliseconds, maxMilliseconds)
+	sleepTime := time.Duration(duration) * time.Millisecond
+	time.Sleep(sleepTime)
+	return
+}
+
+func SleepFloat(seconds float64) {
+	//time.Sleep(time.Duration(int64(seconds*1000)) * time.Millisecond)
+	time.Sleep(time.Duration(int64(seconds*1000)) * time.Millisecond)
+	return
+}
+
+func MtRandFloat(min, max float64) float64 {
+	minMilliseconds := int64(min * 1000)
+	maxMilliseconds := int64(max * 1000)
+	r := MtRand(minMilliseconds, maxMilliseconds)
+	return float64(r) / 1000
+}
+
+func MtRand(min, max int64) int64 {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	return r.Int63n(max-min+1) + min
+}
+
+func UserChannelCreateTest(recipientID string) (st *discordgo.Channel, err error) {
+	if MtRand(0, 1000) > 500 {
+		return nil, nil
+	}
+	return nil, fmt.Errorf("test error UserChannelCreateTest")
+}
+
+func ChannelMessageSendTest(channelID string, content string) (*discordgo.Message, error) {
+	if MtRand(0, 1000) > 500 {
+		return nil, nil
+	}
+	return nil, fmt.Errorf("test error ChannelMessageSendTest")
 }

@@ -8,4 +8,6 @@ type Config struct {
 	AutoStartTasks string
 	PathToStorage  string
 	PathToWWW      string
+	DelayMin       float64
+	DelayMax       float64
 }

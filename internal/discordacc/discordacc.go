@@ -1,9 +1,8 @@
 package discordacc
 
 import (
-	"encoding/json"
-	"fmt"
 	"la_discord_bot/internal/discordgo"
+	"la_discord_bot/internal/helpers"
 )
 
 type Guild struct {
@@ -241,7 +240,7 @@ func New(token string, auth string, auto bool) (dac DiscordAcc, err error) {
 	if err != nil {
 		return newAcc, err
 	}
-
+	//newAcc.Session.Identify.Intents = discordgo.IntentsAll
 	if auto {
 		err = newAcc.Connect()
 
@@ -270,8 +269,20 @@ func (a *DiscordAcc) ReloadData() (err error) {
 	if a.Session.State.User != nil {
 		a.User = *a.Session.State.User
 	}
+
 	// load guilds
 	for _, g := range a.Session.State.Guilds {
+		if a.User.Bot {
+			g, err = a.Session.Guild(g.ID)
+			if err != nil {
+				return err
+			}
+			g.Channels, err = a.Session.GuildChannels(g.ID)
+			if err != nil {
+				return err
+			}
+			//a.Session.GuildMembers()
+		}
 		tg := Guild{
 			ID:                          g.ID,
 			Name:                        g.Name,
@@ -337,34 +348,9 @@ func (a *DiscordAcc) Close() (err error) {
 }
 
 func (a *DiscordAcc) Join(invite string) (err error) {
-	err = joinGuild(invite, a.Token)
+	err = helpers.JoinGuild(invite, a.Token)
 	if err != nil {
 		return err
 	}
-	return nil
-}
-
-func (a *DiscordAcc) GetMembers(guildID string, channelID string, limit int) (err error) {
-
-	a.Session.AddHandler(func(s *discordgo.Session, m *discordgo.Event) {
-		fmt.Printf("event: %+v\n", m.Type)
-		var i interface{}
-		if err = json.Unmarshal(m.RawData, &i); err != nil {
-			fmt.Println(err)
-		}
-		fmt.Printf("event data: %+v\n", i)
-		b, err := json.Marshal(i)
-		if err != nil {
-			fmt.Println("\n\nerror: ", err)
-		}
-		fmt.Printf("\n\nevent data: \n%s\n\n", string(b))
-	})
-
-	err = a.Session.RequestLazyGuildMembers(guildID, channelID, [][]int{{0, 99}}, true, false, true, []int{})
-	if err != nil {
-		//fmt.Println("RequestLazyGuildMembers error: ", err)
-		return err
-	}
-
 	return nil
 }

@@ -1,10 +1,400 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+<!--    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">-->
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/style.css" rel="stylesheet">
+    <title>Discord Bot</title>
 </head>
 <body>
-$END$
+
+<script src="/js/app.js"></script>
+<!--<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>-->
+<script defer src="/js/alpine.js"></script>
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+<div class="container" x-data="form">
+    <p></p>
+    <div class="row g-1 p-2 align-items-center">
+        <div class="col-auto p-2">
+            <h2>Token</h2>
+        </div>
+        <div class="col-auto p-2">
+            <input x-bind:disabled="rs" x-model="token" type="text" id="token" class="form-control" aria-describedby="tokenHelpBlock">
+        </div>
+        <div class="col-auto p-2">
+            <button x-bind:disabled="rs" type="button" class="btn btn-primary" id="getInfoButton" @click="getInfoButtonClick">Get Info</button>
+        </div>
+        <div x-bind:class="acc ? 'bg-light border' : ''" class="col-auto p-2 px-3 ms-2">
+            <template x-if="acc">
+                <div>
+                    <strong>ID:</strong> <span x-text="acc.id"></span><br/>
+                    <strong x-text="acc.bot ? 'Bot:' : 'User:'"></strong> <span x-text="acc.username"></span><br/>
+                    <span x-bind:class="acc.verified ? '' : 'hidden'" class="badge bg-success">Verified</span>
+                    <span x-bind:class="acc.mfa_enabled ? '' : 'hidden'" class="badge bg-success">MFA Enabled</span>
+                </div>
+            </template>
+        </div>
+    </div>
+    <div class="row">
+        <template x-if="errorGetInfo !== false">
+        <div class="col-auto">
+            <p x-bind:class="!errorGetInfo ? 'visually-hidden' : ''" x-text="'ERROR: ' + errorGetInfo" class="alert alert-danger"></p>
+        </div>
+        </template>
+    </div>
+
+    <p></p><p></p>
+    <div x-bind:class="!successMessage ? 'visually-hidden' : ''" x-text="successMessage"
+         class="alert alert-success" role="alert">
+    </div>
+
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" type="button" role="tab" aria-controls="tasks" aria-selected="true">
+                Tasks <span x-text="tasks ? tasks.length : ''" class="badge bg-secondary"></span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="join-tab" data-bs-toggle="tab" data-bs-target="#join" type="button" role="tab" aria-controls="home" aria-selected="false">
+                Join \ Invite
+            </button>
+        </li>
+        <li x-bind:class="!acc ? 'hide' : ''" class="nav-item" role="presentation">
+            <button class="nav-link" id="parse-tab" data-bs-toggle="tab" data-bs-target="#parse" type="button" role="tab" aria-controls="parse" aria-selected="false">
+                Parse Members
+            </button>
+        </li>
+        <li x-bind:class="!acc ? 'hide' : ''" class="nav-item" role="presentation">
+            <button class="nav-link" id="send-tab" data-bs-toggle="tab" data-bs-target="#send" type="button" role="tab" aria-controls="send" aria-selected="false">
+                Send Message
+            </button>
+        </li>
+
+    </ul>
+
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade" id="join" role="tabpanel" aria-labelledby="join-tab">
+            <template x-if="acc">
+                <div>
+                    <template x-if="acc.bot">
+                        <div>
+                            <div class="row g-3 align-items-top">
+                                <div class="col-auto">
+                                    <h2>Invite Bot to server:</h2>
+                                </div>
+                            </div>
+                            <div class="row g-1 align-items-top">
+                                <div class="col-auto">
+                                    <input x-model="clientId" type="text" id="clientId" class="form-control" aria-describedby="clientIdHelpBlock">
+                                    <span id="clientIdHelpBlock" class="form-text">
+                                Bot Client ID
+                            </span>
+                                </div>
+                                <div class="col-auto">
+                                    <template x-if="clientId">
+                                        <a x-bind:href="'https://discord.com/api/oauth2/authorize?client_id=' + clientId + '&permissions=1024&&scope=bot%20guilds%20guilds.members.read'" href="" class="btn btn-primary" target="_blank">Add Bot to Server</a>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+
+                    <template x-if="!(acc.bot)">
+                        <div>
+                            <div class="row g-3 align-items-top">
+                                <div class="col-auto">
+                                    <h2>Auto Join By Invite</h2>
+                                </div>
+                            </div>
+                            <div class="row g-3 align-items-center">
+                                <div class="col-auto">
+                                    <label for="invite" class="form-label">Invite:</label>
+                                </div>
+                                <div class="col-auto">
+                                    <input x-model="invite" type="text" id="invite" class="form-control" aria-describedby="inviteHelpBlock">
+                                </div>
+                                <div class="col-auto">
+                                    <button x-bind:disabled="rs"  type="button" class="btn btn-primary" id="joinButton" @click="joinButtonClick">Join</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-auto">
+                                    <p x-bind:class="!errorJoin ? 'visually-hidden' : ''" x-text="'ERROR: ' + errorJoin" class="alert alert-danger"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </template>
+        </div>
+        <div class="tab-pane fade" id="parse" role="tabpanel" aria-labelledby="parse-tab">
+            <template x-if="acc && guilds">
+                <div>
+                    <div class="row g-1 p-2 align-items-top">
+                        <div class="col-auto">
+                            <h3>Guilds</h3>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-auto">
+                            <p x-bind:class="!errorParse ? 'visually-hidden' : ''" x-text="'ERROR: ' + errorParse" class="alert alert-danger"></p>
+                        </div>
+                    </div>
+                    <div class="row g-3 p-2 align-items-center">
+                        <div class="col-auto">
+                            <label for="guilds" class="form-label">Guild:</label>
+                        </div>
+                        <div class="col-auto">
+                            <select class="form-select" id="guilds" aria-label=Guilds" @change="selectGuildsChange">
+                                <option value="0">Select</option>
+                                <template x-for="guild in guilds">
+                                    <option x-bind:value="guild.id" x-text="guild.name"></option>
+                                </template>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-3 p-2 align-items-center">
+
+                        <template x-if="!acc.bot  && (guilds[currentGuildId] !== undefined)">
+                            <div class="col-auto">
+                                <label for="channels" class="form-label">Channel:</label>
+                            </div>
+                        </template>
+
+                        <template x-if="!acc.bot && (guilds[currentGuildId] !== undefined)">
+                            <div class="col-auto">
+                                <select class="form-select" id="channels" aria-label=Guilds">
+                                    <template x-for="channel in guilds[currentGuildId].channels">
+                                        <template x-if="channel.type == 0">
+                                            <option x-bind:value="channel.id" x-text="channel.name"></option>
+                                        </template>
+                                    </template>
+                                </select>
+                            </div>
+                        </template>
+                    </div>
+                    <div class="row g-3 p-2 align-items-center">
+                        <div class="col-auto">
+                            <button x-bind:disabled="rs" type="button" class="btn btn-primary" id="parseMembers" @click="parseMembersButtonClick">Parse members</button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <div class="tab-pane fade show active" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+            <template x-if="tasks && tasks.length">
+                <div>
+                    <div class="row g-1 align-items-center">
+                        <div class="col-12 text-end">
+                            <button type="button" class="btn btn-primary" id="refreshTasksButton" @click="refreshTasksButtonClick">Refresh</button>
+                        </div>
+                    </div>
+                    <div class="row g-1 align-items-center">
+                        <div class="col-12">
+                                    <table class="table align-middle w-100">
+                                        <thead>
+                                        <tr>
+                                            <th scope="col" class="text-center">Type</th>
+                                            <th scope="col">Guild</th>
+                                            <th scope="col" class="">Progress</th>
+                                            <th scope="col" class="text-center">Status</th>
+                                            <th scope="col" class="text-center">Action</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        <template x-for="task in tasks">
+                                            <tr x-bind:class="taskStatusToClass[task.status]">
+                                                <td class="text-center">
+                                                    <span x-text="taskTypeToText[task.type_task]"></span>
+                                                </td>
+                                                <td>
+                                                    <div x-text="task.guild_name"></div>
+                                                    <div>
+                                                        <strong>Guild ID: </strong>
+                                                        <span x-text="task.guild_id"></span>
+                                                    </div>
+                                                    <template x-if="task.type_task == 2">
+                                                        <div>
+                                                            <strong>Message: </strong>
+                                                            <pre x-text="'Message: ' + task.send_message"></pre>
+                                                        </div>
+                                                    </template>
+                                                    <div x-text="task.error" class="text-danger"></div>
+                                                </td>
+                                                <td class="">
+                                                    <span x-text="task.current_step"></span> / <span x-text="task.steps ? task.steps : '?'"></span>
+                                                    <template x-if="task.type_task == 1">
+                                                        <div>
+                                                            Ids parsed: <span x-text="task.parse_count"></span>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="task.type_task == 2">
+                                                        <div>
+                                                            <div>
+                                                                <strong>Success:</strong>
+                                                                <span x-text="task.send_success"></span>
+                                                            </div>
+                                                            <div>
+                                                                <strong>Fail:</strong>
+                                                                <span x-text="task.send_fail"></span>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span x-text="taskStatusToText[task.status]"></span>
+                                                </td>
+                                                <td class="text-center">
+
+                                                    <div class="input-group mb-3">
+                                                        <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Choose</button>
+                                                        <ul class="dropdown-menu">
+                                                            <li>
+                                                                <a x-bind:class="task.status == 2 ? '' : 'visually-hidden'" class="dropdown-item btn btn-primary" id="stopTaskButton" href="#" @click="stopTaskButtonClick(task.id)">Stop</a>
+                                                                <a x-bind:class="(task.status != 2 && task.status != 4) ? '' : 'visually-hidden'" class="dropdown-item btn btn-primary" id="resumeTaskButton" href="#"  @click="resumeTaskButtonClick(task.id)">Resume</a>
+                                                            </li>
+                                                            <li class="">
+                                                                <a x-bind:class="task.status != 2 ? '' : 'visually-hidden'" class="dropdown-item btn btn-danger" id="deleteTaskButton" @click="deleteTaskButtonClick(task.id)">Delete</a>
+                                                            </li>
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            <li>
+                                                                <a class="dropdown-item btn btn-info" id="logTaskButton" x-bind:href="'/api/tasks/file?task_id=' + task.id + ''" target="_blank">View Log</a>
+                                                            </li>
+                                                            <li>
+                                                                <a class="dropdown-item btn btn-info" id="logDownloadTaskButton" x-bind:href="'/api/tasks/file?task_id=' + task.id + '&download=1'">Download Log</a>
+                                                            </li>
+                                                            <template x-if="task.type_task == 1">
+                                                            <li><hr class="dropdown-divider"></li>
+                                                            </template>
+                                                            <template x-if="task.type_task == 1">
+                                                            <li>
+                                                                <a class="dropdown-item btn btn-info" id="guildMembersButton" x-bind:href="'/api/guilds/file?guild_id=' + task.guild_id + ''" target="_blank">View Parsed Ids</a>
+                                                            </li>
+                                                            </template>
+                                                            <template x-if="task.type_task == 1">
+                                                            <li>
+                                                                <a class="dropdown-item btn btn-info" id="guildMembersDownloadButton" x-bind:href="'/api/guilds/file?guild_id=' + task.guild_id + '&download=1'">Download Parsed Ids</a>
+                                                            </li>
+                                                            </template>
+                                                        </ul>
+                                                    </div>
+
+
+<!--                                                    <button x-bind:class="task.status == 2 ? '' : 'visually-hidden'" type="button" class="btn btn-primary" id="stopTaskButton" @click="stopTaskButtonClick(task.id)">Stop</button>-->
+                                                </td>
+                                            </tr>
+                                            </template>
+                                        </tbody>
+                                    </table>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <div class="tab-pane fade" id="send" role="tabpanel" aria-labelledby="send-tab">
+            <div>
+
+                <div class="row">
+                    <div class="col-auto">
+                        <p x-bind:class="!errorSend ? 'visually-hidden' : ''" x-text="'ERROR: ' + errorSend" class="alert alert-danger"></p>
+                    </div>
+                </div>
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <h5>Members:</h5>
+                    </div>
+                </div>
+                <div class="row p-2 align-items-center">
+                    <div class="col-auto">
+                    </div>
+                    <div class="col-auto">
+                        <select x-model="send.guild_id" class="form-select" id="send_guilds">
+                            <option value="0">Select</option>
+                            <template x-for="guild in guildStores">
+                                <option x-bind:value="guild.guild_id" x-text="guild.guild_name + ' (' + guild.members_count +' Ids)'"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-primary" id="updateGuildStoresButton" @click="updateGuildStores">Refresh</button>
+                    </div>
+                </div>
+                <template x-if="!(acc.bot)">
+                    <div>
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <h5>Join By Invite Before Send</h5>
+                            </div>
+                        </div>
+                        <div class="row p-2 align-items-center">
+                            <div class="col-auto">
+                            </div>
+                            <div class="col-auto">
+                                <strong>Invite:</strong>
+                                <input x-model="send.invite" type="text" id="send_invite" class="form-control" >
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div class="row g-3 p-2">
+                    <div class="col-auto">
+                        <h5>Delay Between Send Messages</h5>
+                    </div>
+                </div>
+                <div class="row g-3 p-2 align-items-center">
+                    <div class="col-auto">
+                    </div>
+                    <div class="col-auto">
+                        <strong>Min:</strong>
+                        <input x-model="send.delay_min" type="text" id="send_delay_min" class="form-control" >
+                        <span class="small">Seconds (f.e: 1.7)</span>
+                    </div>
+                    <div class="col-auto">
+                        -
+                    </div>
+                    <div class="col-auto">
+                    </div>
+                    <div class="col-auto">
+                        <strong>Max:</strong>
+                        <input x-model="send.delay_max" type="text" id="send_delay_max" class="form-control" >
+                        <span class="small">Seconds (f.e: 3.2)</span>
+                    </div>
+                </div>
+                <div class="row g-3 p-2">
+                    <div class="col-auto">
+                        <h5>Message</h5>
+                    </div>
+                </div>
+                <div class="row p-2">
+                    <div class="col-auto">
+                    </div>
+                    <div class="col-12">
+                        <textarea x-model="send.message" class="form-control w-100 h-auto"></textarea>
+                    </div>
+                </div>
+                <div class="row p-2 align-items-center">
+                    <div class="col-12 text-end">
+                        <button type="button" class="btn btn-primary" id="sendTaskButton" @click="sendTaskButtonClick">Send Message</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+<!-- Option 2: Separate Popper and Bootstrap JS -->
+<!--
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js" integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js" integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13" crossorigin="anonymous"></script>
+-->
 </body>
 </html>

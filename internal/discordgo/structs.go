@@ -839,9 +839,9 @@ func (t *TooManyRequests) UnmarshalJSON(b []byte) error {
 
 // A ReadState stores data on the read state of channels.
 type ReadState struct {
-	MentionCount  int    `json:"mention_count"`
-	LastMessageID string `json:"last_message_id"`
-	ID            string `json:"id"`
+	MentionCount  int         `json:"mention_count"`
+	LastMessageID json.Number `json:"last_message_id"`
+	ID            string      `json:"id"`
 }
 
 // An Ack is used to ack messages

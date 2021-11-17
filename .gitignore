@@ -14,4 +14,9 @@
 
 # Dependency directories (remove the comment below to include it)
 vendor/
+storage/guilds/*
+storage/logs/*
+storage/tasks/*
+.idea/
+
 
