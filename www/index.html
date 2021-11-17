@@ -222,7 +222,7 @@
                                                     <template x-if="task.type_task == 2">
                                                         <div>
                                                             <strong>Message: </strong>
-                                                            <pre x-text="'Message: ' + task.send_message"></pre>
+                                                            <pre x-text="task.send_message"></pre>
                                                         </div>
                                                     </template>
                                                     <div x-text="task.error" class="text-danger"></div>
@@ -377,7 +377,8 @@
                     <div class="col-auto">
                     </div>
                     <div class="col-12">
-                        <textarea x-model="send.message" class="form-control w-100 h-auto"></textarea>
+                        <span class="small">Use <i>&lt;user&gt;</i> to mention user.</span>
+                        <textarea x-model="send.message" class="form-control w-100 h-auto" rows="10"></textarea>
                     </div>
                 </div>
                 <div class="row p-2 align-items-center">

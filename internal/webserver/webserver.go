@@ -12,7 +12,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -99,15 +98,7 @@ func Init(c config.Config) (err error) {
 	})
 
 	authorized.GET("/api/tasks", func(c *gin.Context) {
-		taskSlice := []task.Task{}
-		for _, t := range Tasks.Tasks {
-			taskSlice = append(taskSlice, *t)
-
-		}
-		sort.Slice(taskSlice, func(i, j int) bool {
-			return taskSlice[i].Created > taskSlice[j].Created
-		})
-		c.JSON(http.StatusOK, gin.H{"tasks": taskSlice})
+		c.JSON(http.StatusOK, gin.H{"tasks": Tasks.TasksSlice()})
 	})
 
 	authorized.GET("/api/tasks/stop", func(c *gin.Context) {
@@ -117,7 +108,7 @@ func Init(c config.Config) (err error) {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"tasks": Tasks.Tasks})
+		c.JSON(http.StatusOK, gin.H{"tasks": Tasks.TasksSlice()})
 	})
 
 	authorized.GET("/api/tasks/delete", func(c *gin.Context) {
@@ -127,7 +118,7 @@ func Init(c config.Config) (err error) {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"tasks": Tasks.Tasks})
+		c.JSON(http.StatusOK, gin.H{"tasks": Tasks.TasksSlice()})
 	})
 
 	authorized.GET("/api/tasks/resume", func(c *gin.Context) {
@@ -137,7 +128,7 @@ func Init(c config.Config) (err error) {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
 		}
-		c.JSON(http.StatusOK, gin.H{"tasks": Tasks.Tasks})
+		c.JSON(http.StatusOK, gin.H{"tasks": Tasks.TasksSlice()})
 	})
 
 	authorized.GET("/api/guilds/file", func(c *gin.Context) {

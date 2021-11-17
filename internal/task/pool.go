@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 )
 
@@ -138,4 +139,17 @@ func (P *Pool) Get(taskId string) (task *Task, err error) {
 		}
 	}
 	return nil, fmt.Errorf("task not found")
+}
+
+func (P *Pool) TasksSlice() []Task {
+	taskSlice := []Task{}
+	for _, t := range P.Tasks {
+		taskSlice = append(taskSlice, *t)
+
+	}
+	sort.Slice(taskSlice, func(i, j int) bool {
+		return taskSlice[i].Created > taskSlice[j].Created
+	})
+
+	return taskSlice
 }

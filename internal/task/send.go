@@ -32,7 +32,9 @@ func (T *Task) SendMessages() (err error) {
 		return err
 	}
 	T.Log.Printf("Load guild %v data", T.GuildId)
-	err = guildStore.LoadMembers()
+	//err = guildStore.LoadMembers()
+	membersIDs, err := guildStore.LoadMembersSlice()
+
 	if err != nil {
 		return err
 	}
@@ -44,14 +46,14 @@ func (T *Task) SendMessages() (err error) {
 	}
 
 	T.CurrentStep = 0
-	T.Steps = len(guildStore.MembersIds)
+	T.Steps = len(membersIDs)
 
 	T.GuildName = guildStore.GuildName
 	if err = T.Save(); err != nil {
 		return err
 	}
 
-	for _, m := range guildStore.MembersIds {
+	for _, m := range membersIDs {
 		if T.Status != StatusWorking {
 			return nil
 		}
@@ -176,4 +178,11 @@ func (T *Task) checkDelayValues() {
 			T.SendDelayMax, T.Config.DelayMax, T.Config.DelayMax)
 		T.SendDelayMax = T.Config.DelayMax
 	}
+
+	if T.SendDelayMax < T.SendDelayMin {
+		tt := T.SendDelayMin
+		T.SendDelayMin = T.SendDelayMax
+		T.SendDelayMax = tt
+	}
+
 }
