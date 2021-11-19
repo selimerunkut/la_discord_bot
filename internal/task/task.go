@@ -105,7 +105,6 @@ func (T *Task) Delete() (err error) {
 
 	os.Remove(T.FilenameTask())
 	os.Remove(T.FilenameLog())
-	os.Remove(T.FilenameLog())
 
 	return nil
 }

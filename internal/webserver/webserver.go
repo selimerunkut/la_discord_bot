@@ -271,6 +271,10 @@ func Init(c config.Config) (err error) {
 		}
 
 		t.SendInvite = strings.TrimSpace(sendTask.Invite)
+		t.SendInvite = strings.Replace(t.SendInvite, "http://", "", 1)
+		t.SendInvite = strings.Replace(t.SendInvite, "https://", "", 1)
+		t.SendInvite = strings.Replace(t.SendInvite, "discord.gg/", "", 1)
+		t.SendInvite = strings.Replace(t.SendInvite, "discord.com/invite/", "", 1)
 		t.SendMessage = strings.TrimSpace(sendTask.Message)
 
 		if f, err := strconv.ParseFloat(strings.TrimSpace(sendTask.DelayMin), 32); err == nil {
