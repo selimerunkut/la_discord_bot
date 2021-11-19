@@ -3,12 +3,12 @@
 ### Compile
 
 ```shell
-go build -o bin/discord-web -v cmd/webserver/main.go
+go build -o bin/webserver -v cmd/webserver/main.go
 ```
 
 ### Run local
 ```shell
-./bin/discord-web
+./bin/webserver
 ```
 
 ### Heroku

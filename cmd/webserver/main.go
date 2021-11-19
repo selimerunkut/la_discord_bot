@@ -36,7 +36,7 @@ func main() {
 	if c.GinMode, exists = os.LookupEnv("GIN_MODE"); !exists {
 		log.Fatalf("GIN_MODE does not exits in .env")
 	}
-	if c.ServerPort, exists = os.LookupEnv("SERVER_PORT"); !exists {
+	if c.ServerPort, exists = os.LookupEnv("PORT"); !exists {
 		log.Fatalf("SERVER_PORT does not exits in .env")
 	}
 	if c.Login, exists = os.LookupEnv("LOGIN"); !exists {

@@ -21,6 +21,16 @@ type DiscordError struct {
 	Code    int    `json:"code"`
 }
 
+type jsonSendTask struct {
+	Token      string `json:"token"`
+	GuildId    string `json:"guild_id"`
+	MembersIDS string `json:"members_ids"`
+	Invite     string `json:"invite"`
+	DelayMin   string `json:"delay_min"`
+	DelayMax   string `json:"delay_max"`
+	Message    string `json:"message"`
+}
+
 var Tasks = task.Pool{}
 
 var AppConf = config.Config{}
@@ -58,10 +68,16 @@ func Init(c config.Config) (err error) {
 
 	authorized.GET("/api/discord/joinGuild", func(c *gin.Context) {
 		inviteCode := c.Query("invite_code")
+		inviteCode = strings.Replace(inviteCode, "http://", "", 1)
+		inviteCode = strings.Replace(inviteCode, "https://", "", 1)
+		inviteCode = strings.Replace(inviteCode, "discord.gg/", "", 1)
+		inviteCode = strings.Replace(inviteCode, "discord.com/invite/", "", 1)
+		// discord.gg/dbd
+		// https://discord.com/invite/dbd
 		token := c.Query("token")
-		err := helpers.JoinGuild(inviteCode, token)
+		err := helpers.JoinGuild(inviteCode, token, helpers.Fingerprintx{}, helpers.Cookie{})
 		if err != nil {
-			fmt.Printf("%v\n", err)
+			//log.Printf("%v", err)
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
 		} else {
@@ -214,58 +230,69 @@ func Init(c config.Config) (err error) {
 	})
 
 	authorized.POST("/api/tasks/send", func(c *gin.Context) {
-		var json struct {
-			Token    string `json:"token"`
-			GuildId  string `json:"guild_id"`
-			Invite   string `json:"invite"`
-			DelayMin string `json:"delay_min"`
-			DelayMax string `json:"delay_max"`
-			Message  string `json:"message"`
-		}
+		sendTask := jsonSendTask{}
 
-		if err := c.ShouldBindJSON(&json); err != nil {
+		if err := c.ShouldBindJSON(&sendTask); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
-		if strings.TrimSpace(json.Token) == "" {
+		if strings.TrimSpace(sendTask.Token) == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Token can't be empty"})
 			return
 		}
 
-		if strings.TrimSpace(json.Message) == "" {
+		if strings.TrimSpace(sendTask.Message) == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Message can't be empty"})
 			return
 		}
 
-		if strings.TrimSpace(json.GuildId) == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Guild Id can't be empty"})
+		if strings.TrimSpace(sendTask.GuildId) == "" && strings.TrimSpace(sendTask.MembersIDS) == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Guild and members can't be empty"})
 			return
 		}
 
-		t, err := Tasks.NewTask(json.Token, task.TypeTaskSend, json.GuildId, "", &AppConf)
+		t, err := Tasks.NewTask(sendTask.Token, task.TypeTaskSend, sendTask.GuildId, "", &AppConf)
 		if err != nil {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 			return
 		}
 
-		t.SendInvite = strings.TrimSpace(json.Invite)
-		t.SendMessage = strings.TrimSpace(json.Message)
+		if strings.TrimSpace(sendTask.MembersIDS) != "" {
+			for _, s := range helpers.Explode("\n", strings.TrimSpace(sendTask.MembersIDS)) {
+				if strings.TrimSpace(s) == "" {
+					continue
+				}
+				t.SendMembersIDS = append(t.SendMembersIDS, guild.Member{
+					MemberId: s,
+				})
 
-		if f, err := strconv.ParseFloat(json.DelayMin, 32); err == nil {
+			}
+		}
+
+		t.SendInvite = strings.TrimSpace(sendTask.Invite)
+		t.SendMessage = strings.TrimSpace(sendTask.Message)
+
+		if f, err := strconv.ParseFloat(strings.TrimSpace(sendTask.DelayMin), 32); err == nil {
 			if f < AppConf.DelayMin {
 				t.Log.Printf("Delay %v min  < %v . Set delay min to %v", f, AppConf.DelayMin, AppConf.DelayMin)
 				f = AppConf.DelayMin
 			}
 			t.SendDelayMin = f
+		} else {
+			t.Log.Printf("Delay min %v not float. Set %v", sendTask.DelayMin, AppConf.DelayMin)
+			t.SendDelayMin = AppConf.DelayMin
 		}
 
-		if f, err := strconv.ParseFloat(json.DelayMax, 32); err == nil {
+		if f, err := strconv.ParseFloat(strings.TrimSpace(sendTask.DelayMax), 32); err == nil {
 			if f > AppConf.DelayMax {
 				t.Log.Printf("Delay %v max  > %v . Set delay max to %v", f, AppConf.DelayMax, AppConf.DelayMax)
 				f = AppConf.DelayMax
 			}
 			t.SendDelayMax = f
+		} else {
+			t.Log.Printf("Delay max %v not float. Set %v", sendTask.DelayMax, AppConf.DelayMax)
+			t.SendDelayMax = AppConf.DelayMax
 		}
 
 		if err = t.Save(); err != nil {
@@ -280,9 +307,23 @@ func Init(c config.Config) (err error) {
 		}
 
 		c.JSON(http.StatusOK, gin.H{"task_id": t.Id})
-
-		//c.JSON(http.StatusOK, gin.H{"stores": json})
 	})
+
+	//authorized.POST("/api/tasks/sendonce", func(c *gin.Context) {
+	//	sendTask := jsonSendTask{}
+	//	if err := c.ShouldBindJSON(&sendTask); err != nil {
+	//		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	//		return
+	//	}
+	//
+	//	t, err := Tasks.NewTask(sendTask.Token, task.TypeTaskSend, sendTask.GuildId, "", &AppConf)
+	//	if err != nil {
+	//		c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+	//		return
+	//	}
+	//
+	//	c.JSON(http.StatusOK, gin.H{"status": "ok"})
+	//})
 
 	// TODO Upload memberIds file
 	port := os.Getenv("PORT")

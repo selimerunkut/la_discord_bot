@@ -65,13 +65,16 @@ func (P *Pool) NewTask(token string, type_task int, guild_id string, channel_id 
 		return nil, fmt.Errorf("token can't be empty")
 	}
 
-	if guild_id == "" {
+	if type_task == 1 && guild_id == "" {
 		return nil, fmt.Errorf("guild id can't be empty")
 	}
 
 	for _, t := range P.Tasks {
 		//if t.TypeTask == type_task && t.GuildId == guild_id && t.ChannelId == channel_id {
 		if t.TypeTask == type_task && t.GuildId == guild_id {
+			if t.TypeTask == 2 && t.GuildId == "" {
+				continue
+			}
 			return nil, fmt.Errorf("task already exists")
 		}
 	}

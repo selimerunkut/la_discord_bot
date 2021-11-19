@@ -348,7 +348,7 @@ func (a *DiscordAcc) Close() (err error) {
 }
 
 func (a *DiscordAcc) Join(invite string) (err error) {
-	err = helpers.JoinGuild(invite, a.Token)
+	err = helpers.JoinGuild(invite, a.Token, helpers.Fingerprintx{}, helpers.Cookie{})
 	if err != nil {
 		return err
 	}

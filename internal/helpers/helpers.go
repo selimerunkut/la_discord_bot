@@ -11,50 +11,62 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
-func getFingerprint() (fingerprint string, err error) {
-	//log.SetOutput(ioutil.Discard)
+type Fingerprintx struct {
+	Fingerprint string `json:"fingerprint"`
+}
+
+func (f *Fingerprintx) ToString() string {
+	return f.Fingerprint
+}
+
+func GetFingerprint() (fingerprint Fingerprintx, err error) {
+
 	resp, err := http.Get("https://discordapp.com/api/v9/experiments")
 	if err != nil {
-		return "", err
+		return
 	}
 
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return
 	}
 
-	type Fingerprintx struct {
-		Fingerprint string `json:"fingerprint"`
-	}
 	var fingerprinty Fingerprintx
 	err = json.Unmarshal(body, &fingerprinty)
 	if err != nil {
-		return "", err
+		return
 	}
-	//color.Green("INFO: Obtained Fingerprint: " + fingerprinty.Fingerprint)
-	return fingerprinty.Fingerprint, nil
+	return fingerprinty, nil
 
 }
 
-type cookie struct {
-	Dcfduid  string
-	Sdcfduid string
+type Cookie struct {
+	Dcfduid  string `json:"dcfduid"`
+	Sdcfduid string `json:"sdcfduid"`
 }
 
-func getCookie() (c cookie, err error) {
-	//log.SetOutput(ioutil.Discard)
+func (c *Cookie) ToString() string {
+	if c.Dcfduid == "" && c.Sdcfduid == "" {
+		return ""
+	}
+	return "__dcfduid=" + c.Dcfduid + "; " + "__sdcfduid=" + c.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
+}
+
+func GetCookie() (c Cookie, err error) {
 	resp, err := http.Get("https://discord.com")
 	if err != nil {
-		return cookie{}, err
+		return Cookie{}, err
 	}
 	defer resp.Body.Close()
 
-	Cookie := cookie{}
+	Cookie := Cookie{}
 	if resp.Cookies() != nil {
 		for _, cookie := range resp.Cookies() {
 			if cookie.Name == "__dcfduid" {
@@ -65,27 +77,28 @@ func getCookie() (c cookie, err error) {
 			}
 		}
 	}
-	//color.Yellow("INFO: Obtained Cookies: " + "__dcfduid= " + Cookie.Dcfduid + " " + "__sdcfduid= " + Cookie.Sdcfduid)
 	return Cookie, nil
 }
 
-func JoinGuild(inviteCode string, token string) (err error) {
+func JoinGuild(inviteCode string, token string, fingerprintx Fingerprintx, cookie Cookie) (err error) {
 	url := "https://discord.com/api/v9/invites/" + inviteCode
-	fingerprint, err := getFingerprint()
-	if err != nil {
-		return err
+	if fingerprintx.ToString() == "" {
+		fingerprintx, err = GetFingerprint()
+		if err != nil {
+			return err
+		}
 	}
 
-	Cookie, err := getCookie()
-	if err != nil {
-		return err
+	if cookie.ToString() == "" {
+		cookie, err = GetCookie()
+		if err != nil {
+			return err
+		}
 	}
 
-	if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
+	if cookie.ToString() == "" {
 		return errors.New("empty cookie")
 	}
-
-	Cookies := "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + "locale=us"
 
 	var headers struct{}
 	requestBytes, err := json.Marshal(headers)
@@ -98,11 +111,11 @@ func JoinGuild(inviteCode string, token string) (err error) {
 		return errors.New("error while creating request")
 	}
 
-	req.Header.Set("cookie", Cookies)
+	req.Header.Set("cookie", cookie.ToString())
 	req.Header.Set("authorization", token)
 
 	httpClient := http.Client{}
-	resp, err := httpClient.Do(commonHeaders(req, fingerprint))
+	resp, err := httpClient.Do(CommonHeaders(req, fingerprintx.ToString()))
 	if err != nil {
 		return errors.New("error while sending request")
 	}
@@ -115,12 +128,14 @@ func JoinGuild(inviteCode string, token string) (err error) {
 
 }
 
-func commonHeaders(req *http.Request, fingerprint string) *http.Request {
+func CommonHeaders(req *http.Request, fingerprint string) *http.Request {
 	req.Header.Set("accept", "*/*")
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("accept-encoding", "gzip, deflate, br")
 	req.Header.Set("accept-language", "en-GB")
 	req.Header.Set("content-type", "application/json")
+	req.Header.Set("sec-ch-ua-mobile", "?0")
+	req.Header.Set("sec-ch-ua-platform", "\"Windows\"")
 	req.Header.Set("X-Debug-Options", "bugReporterEnabled")
 	req.Header.Set("cache-control", "no-cache")
 	req.Header.Set("sec-ch-ua", "'Chromium';v='92', ' Not A;Brand';v='99', 'Google Chrome';v='92'")
@@ -136,6 +151,12 @@ func commonHeaders(req *http.Request, fingerprint string) *http.Request {
 	req.Header.Set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.16 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36")
 	req.Header.Set("te", "trailers")
 	return req
+}
+
+func Snowflake() int64 {
+	snowflake := strconv.FormatInt((time.Now().UTC().UnixNano()/1000000)-1420070400000, 2) + "0000000000000000000000"
+	nonce, _ := strconv.ParseInt(snowflake, 2, 64)
+	return nonce
 }
 
 func FilePutContents(filename string, data string, mode os.FileMode) error {
@@ -159,7 +180,7 @@ func FileExists(file string) bool {
 	}
 }
 
-func Sleep(seconds int) {
+func Sleep(seconds int64) {
 	time.Sleep(time.Duration(seconds) * time.Second)
 	return
 }
@@ -237,4 +258,12 @@ func ChannelMessageSendTest(channelID string, content string) (*discordgo.Messag
 		return nil, nil
 	}
 	return nil, fmt.Errorf("test error ChannelMessageSendTest")
+}
+
+func Explode(delimiter, text string) []string {
+	if len(delimiter) > len(text) {
+		return strings.Split(delimiter, text)
+	} else {
+		return strings.Split(text, delimiter)
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"la_discord_bot/internal/config"
 	"la_discord_bot/internal/discordacc"
+	"la_discord_bot/internal/guild"
 	"la_discord_bot/internal/helpers"
 	"log"
 	"os"
@@ -43,13 +44,14 @@ type Task struct {
 	ParseMemberIds map[string]string `json:"-"`
 
 	//SendMemberIds []string `json:"-"`
-	SendMemberId string  `json:"current_member_id"`
-	SendSuccess  int     `json:"send_success"`
-	SendFail     int     `json:"send_fail"`
-	SendMessage  string  `json:"send_message"`
-	SendDelayMin float64 `json:"send_delay_min"`
-	SendDelayMax float64 `json:"send_delay_max"`
-	SendInvite   string  `json:"send_invite"`
+	SendMemberId   string         `json:"current_member_id"`
+	SendSuccess    int            `json:"send_success"`
+	SendFail       int            `json:"send_fail"`
+	SendMessage    string         `json:"send_message"`
+	SendDelayMin   float64        `json:"send_delay_min"`
+	SendDelayMax   float64        `json:"send_delay_max"`
+	SendInvite     string         `json:"send_invite"`
+	SendMembersIDS []guild.Member `json:"send_members_ids"`
 
 	Created     int64                 `json:"created"`
 	Status      int                   `json:"status"`

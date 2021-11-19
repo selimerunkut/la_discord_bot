@@ -22,6 +22,8 @@ function form() {
         send: {
             token: "",
             guild_id: "",
+            members_ids: "",
+            // members_ids: [],
             invite: "",
             delay_min: "",
             delay_max: "",

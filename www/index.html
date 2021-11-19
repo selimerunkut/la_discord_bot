@@ -118,6 +118,7 @@
                                 </div>
                                 <div class="col-auto">
                                     <input x-model="invite" type="text" id="invite" class="form-control" aria-describedby="inviteHelpBlock">
+                                    <span class="small">f.e.: <strong>https://discord.gg/dbd</strong> OR <strong>https://discord.com/invite/dbd</strong> OR <strong>dbd</strong></span>
                                 </div>
                                 <div class="col-auto">
                                     <button x-bind:disabled="rs"  type="button" class="btn btn-primary" id="joinButton" @click="joinButtonClick">Join</button>
@@ -311,21 +312,55 @@
                         <h5>Members:</h5>
                     </div>
                 </div>
-                <div class="row p-2 align-items-center">
-                    <div class="col-auto">
+
+                <ul class="nav nav-tabs" id="myTab2" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="guildsparsed-tab" data-bs-toggle="tab" data-bs-target="#guildsparsed" type="button" role="tab" aria-controls="guildsparsed" aria-selected="true">Parsed Guilds</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="manualids-tab" data-bs-toggle="tab" data-bs-target="#manualids" type="button" role="tab" aria-controls="manualids" aria-selected="false">Manual Member IDs</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="myTab2Content">
+                    <div class="tab-pane fade show active" id="guildsparsed" role="tabpanel" aria-labelledby="guildsparsed-tab">
+
+                        <div class="row p-2 align-items-center">
+<!--                            <div class="col-auto">-->
+<!--                            </div>-->
+                            <div class="col-auto">
+                                <select x-model="send.guild_id" class="form-select" id="send_guilds">
+                                    <option value="0">Select</option>
+                                    <template x-for="guild in guildStores">
+                                        <option x-bind:value="guild.guild_id" x-text="guild.guild_name + ' (' + guild.members_count +' Ids)'"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-primary" id="updateGuildStoresButton" @click="updateGuildStores">Refresh</button>
+                            </div>
+                        </div>
+
                     </div>
-                    <div class="col-auto">
-                        <select x-model="send.guild_id" class="form-select" id="send_guilds">
-                            <option value="0">Select</option>
-                            <template x-for="guild in guildStores">
-                                <option x-bind:value="guild.guild_id" x-text="guild.guild_name + ' (' + guild.members_count +' Ids)'"></option>
-                            </template>
-                        </select>
-                    </div>
-                    <div class="col-auto">
-                        <button type="button" class="btn btn-primary" id="updateGuildStoresButton" @click="updateGuildStores">Refresh</button>
+                    <div class="tab-pane fade" id="manualids" role="tabpanel" aria-labelledby="manualids-tab">
+
+                        <div class="row p-2 align-items-center">
+<!--                            <div class="col-auto">-->
+<!--                            </div>-->
+                            <div class="col-auto">
+                                <strong>Send message to User ID:</strong>
+                                <textarea x-model="send.members_ids" id="send_members_ids" class="form-control"></textarea>
+                                <span class="small">One ID per line</span>
+<!--                                <input x-model="send.members_ids" type="text" id="send_members_ids" class="form-control" >-->
+                            </div>
+                        </div>
+
                     </div>
                 </div>
+
+
+
+
+
                 <template x-if="!(acc.bot)">
                     <div>
                         <div class="row align-items-center">
@@ -354,7 +389,7 @@
                     </div>
                     <div class="col-auto">
                         <strong>Min:</strong>
-                        <input x-model="send.delay_min" type="text" id="send_delay_min" class="form-control" >
+                        <input x-model="send.delay_min" value="0.5" type="text" id="send_delay_min" class="form-control" >
                         <span class="small">Seconds (f.e: 1.7)</span>
                     </div>
                     <div class="col-auto">
@@ -364,7 +399,7 @@
                     </div>
                     <div class="col-auto">
                         <strong>Max:</strong>
-                        <input x-model="send.delay_max" type="text" id="send_delay_max" class="form-control" >
+                        <input x-model="send.delay_max" value="5.5" type="text" id="send_delay_max" class="form-control" >
                         <span class="small">Seconds (f.e: 3.2)</span>
                     </div>
                 </div>
