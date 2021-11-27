@@ -11,14 +11,6 @@ go build -o bin/webserver -v cmd/webserver/main.go
 ./bin/webserver
 ```
 
-### Heroku
-
-```shell
-heroku login
-heroku git:remote -a discord-bot-lafamiglia
-git push heroku
-```
-
 ## Instruction
 
 ### Token
