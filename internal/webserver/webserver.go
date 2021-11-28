@@ -252,6 +252,10 @@ func Init(c config.Config) (err error) {
 			return
 		}
 
+		if strings.TrimSpace(sendTask.MembersIDS) != "" {
+			sendTask.GuildId = ""
+		}
+
 		t, err := Tasks.NewTask(sendTask.Token, task.TypeTaskSend, sendTask.GuildId, "", &AppConf)
 		if err != nil {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
