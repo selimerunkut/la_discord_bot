@@ -11,6 +11,12 @@ go build -o bin/webserver -v cmd/webserver/main.go
 ./bin/webserver
 ```
 
+app should be visible here:
+
+```
+http://localhost:8080/
+```
+
 ## Instruction
 
 ### Token
