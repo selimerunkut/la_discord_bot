@@ -2,7 +2,6 @@ package webserver
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"la_discord_bot/internal/config"
 	"la_discord_bot/internal/discordacc"
@@ -14,6 +13,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type DiscordError struct {
@@ -129,7 +130,7 @@ func Init(c config.Config) (err error) {
 		}
 		c.JSON(http.StatusOK, gin.H{"task_id": task.Id})
 	})
- 
+
 	authorized.GET("/api/tasks", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"tasks": Tasks.TasksSlice()})
 	})
@@ -365,9 +366,8 @@ func Init(c config.Config) (err error) {
 	return nil
 }
 
-
-func LoadProxyListFile(filename string){
-	pool , err := helpers.FileGetContents(filename)
+func LoadProxyListFile(filename string) {
+	pool, err := helpers.FileGetContents(filename)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -375,7 +375,7 @@ func LoadProxyListFile(filename string){
 }
 
 func UploadTokenFile(filename string) {
-	token , err := helpers.FileGetContents(filename)
+	token, err := helpers.FileGetContents(filename)
 	if err != nil {
 		fmt.Println(err)
 	}
