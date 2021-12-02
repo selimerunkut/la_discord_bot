@@ -130,7 +130,11 @@ function form() {
             // console.log(channel)
             let token = document.getElementById("token").value
             // let response = await fetch("/api/discord/ParseMembers?token=" + token + "&guild_id=" + this.currentGuildId);
-            let response = await fetch("/api/discord/task/parse?token=" + token + "&guild_id=" + this.currentGuildId + "&channel_id=" + channel);
+            if (channel == "all"){
+                let response = await fetch("/api/discord/task/parseall?token=" + token + "&guild_id=" + this.currentGuildId);
+            } else {
+                let response = await fetch("/api/discord/task/parse?token=" + token + "&guild_id=" + this.currentGuildId + "&channel_id=" + channel);
+            }
             if (response.ok) {
                 let json = await response.json();
                 await this.updateTasks()

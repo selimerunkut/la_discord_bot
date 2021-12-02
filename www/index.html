@@ -170,7 +170,8 @@
 
                         <template x-if="!acc.bot && (guilds[currentGuildId] !== undefined)">
                             <div class="col-auto">
-                                <select class="form-select" id="channels" aria-label=Guilds">
+                                <select class="form-select" id="channels" aria-label="Guilds">
+                                    <option>all</option>
                                     <template x-for="channel in guilds[currentGuildId].channels">
                                         <template x-if="channel.type == 0">
                                             <option x-bind:value="channel.id" x-text="channel.name"></option>
