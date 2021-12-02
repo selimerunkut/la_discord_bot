@@ -79,7 +79,7 @@ func (T *Task) ParseMembersAll() (err error) {
 		if T.GuildMemberCount > 0 {
 			T.Steps = int(math.Round(float64(T.GuildMemberCount)/100)) + 1
 		}
-		fmt.Println(len(T.Da.Guilds[T.GuildId].Members))
+		fmt.Println(T.Da.Guilds[T.GuildId].Members)
 
 	}
 	return nil
