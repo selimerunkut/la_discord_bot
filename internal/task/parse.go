@@ -71,16 +71,13 @@ func (T *Task) ParseMembersAll() (err error) {
 	}
 	T.Log.Println("Logged in. ID: " + T.Da.User.ID)
 	T.UserId = T.Da.User.ID
-	T.UserName = T.Da.User.Username
 	T.GuildMemberCount = T.Da.Guilds[T.GuildId].MemberCount
-	T.GuildName = T.Da.Guilds[T.GuildId].Name
 
 	if !T.Da.User.Bot {
 		if T.GuildMemberCount > 0 {
 			T.Steps = int(math.Round(float64(T.GuildMemberCount)/100)) + 1
 		}
-		fmt.Println(T.Da.Guilds[T.GuildId].Members)
-
+		fmt.Println(T.Da.Guilds[T.GuildId].MemberCount)
 	}
 	return nil
 }
@@ -117,6 +114,7 @@ func (T *Task) ParseMembersUser() (err error) {
 				}
 			}
 
+			fmt.Println(memCount)
 			if len(i.Ops[0].Range) > 0 {
 				T.Log.Printf("Range %+v | memCount %v", i.Ops[0].Range, memCount)
 			}

@@ -30,6 +30,7 @@ function form() {
             message: "",
         },
         token: "",
+        tokens: [],
         guildStores: [],
 
         successMessage: false,
@@ -45,6 +46,18 @@ function form() {
         currentChannelId: false,
         clientId: "",
         invite: "",
+        initFileUpload: function () {
+            document.querySelector('#uploadFileInput').click();
+        },
+        handleFileUpload: async function (event) {
+            const file = event.target.files[0];
+            let content = await file.text()
+            content = content.trim();
+            this.tokens = content.split("\n").map(emailWithToken => {
+                const splitEmailToken = emailWithToken.split(":");
+                return splitEmailToken[splitEmailToken.length - 1];
+            });
+        },
         sendTaskButtonClick: async function (event) {
             this.errorSend = false
             this.send.token = this.token
