@@ -365,19 +365,3 @@ func Init(c config.Config) (err error) {
 
 	return nil
 }
-
-func LoadProxyListFile(filename string) {
-	pool, err := helpers.FileGetContents(filename)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(pool)
-}
-
-func UploadTokenFile(filename string) {
-	token, err := helpers.FileGetContents(filename)
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println(token)
-}

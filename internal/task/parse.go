@@ -60,29 +60,13 @@ func (T *Task) ParseMembers() (err error) {
 }
 
 func (T *Task) ParseMembersAll() (err error) {
-	T.Log.Println("Parsing All members in the guild")
 	T.Da, err = discordacc.New(T.Token, "Bot", true)
 	defer T.Da.Close()
 
-	if err != nil {
-		T.Log.Printf("ERROR Task Parse All Members Starting: " + fmt.Sprint(err))
-		T.SetError(err)
-		return err
-	}
-	T.Log.Println("Logged in. ID: " + T.Da.User.ID)
 	T.UserId = T.Da.User.ID
+	T.UserName = T.Da.User.Username
 	T.GuildMemberCount = T.Da.Guilds[T.GuildId].MemberCount
-
-	if !T.Da.User.Bot {
-		if T.GuildMemberCount > 0 {
-			T.Steps = int(math.Round(float64(T.GuildMemberCount)/100)) + 1
-		}
-		fmt.Println(T.Da.Guilds[T.GuildId].MemberCount)
-	}
-	return nil
-}
-
-func (T *Task) ParseMembersUser() (err error) {
+	T.GuildName = T.Da.Guilds[T.GuildId].Name
 
 	T.CurrentStep = 0
 	guildStore, err := guild.NewStore(T.GuildId, T.GuildName, T.Config)
@@ -91,10 +75,12 @@ func (T *Task) ParseMembersUser() (err error) {
 		return err
 	}
 	err = guildStore.LoadMembers()
+	fmt.Println(guildStore.MembersIds)
 
 	T.Da.Session.AddHandler(func(s *discordgo.Session, m *discordgo.Event) {
 		//T.Log.Printf("event: %+v\n", m.Type)
 		if m.Type == "GUILD_MEMBER_LIST_UPDATE" {
+
 			var i GuildMemberListUpdateEventAuto
 			if err = json.Unmarshal(m.RawData, &i); err != nil {
 				T.Log.Println(err)
@@ -114,7 +100,106 @@ func (T *Task) ParseMembersUser() (err error) {
 				}
 			}
 
-			fmt.Println(memCount)
+			if len(i.Ops[0].Range) > 0 {
+				T.Log.Printf("Range %+v | memCount %v", i.Ops[0].Range, memCount)
+			}
+
+			// save members
+			if memCount > 0 {
+				//err = T.SaveGuildMembers(T.ParseMemberIds, os.O_WRONLY|os.O_CREATE|os.O_APPEND)
+				//err = T.SaveGuildMembers(, os.O_WRONLY|os.O_CREATE|os.O_APPEND)
+				err = guildStore.SaveMembers()
+				if err != nil {
+					T.Log.Println(err)
+				}
+			}
+		}
+	})
+
+	currGuild, err := T.Da.Session.Guild(T.GuildId)
+	if err != nil {
+		return err
+	}
+
+	channels := currGuild.Channels
+	for _, channel := range channels {
+		channelId := channel.ID
+
+		err = T.Da.Session.RequestLazyGuildMembers(T.GuildId, channelId, [][]int{{0, 99}}, true, false, true, []int{})
+		if err != nil {
+			T.Log.Println("RequestLazyGuildMembers error: ", err)
+			return err
+		}
+		helpers.Sleep(10)
+		j := T.CurrentStep
+		for {
+			if T.Status != StatusWorking {
+				return nil
+			}
+			if j > T.Steps {
+				break
+			}
+			err = T.Da.Session.RequestLazyGuildMembers(T.GuildId, channelId, [][]int{{0, 99}, {100 * j, 100*j + 99}, {100 * (j + 1), 100*(j+1) + 99}}, false, false, false, []int{})
+			T.CurrentStep = j
+			T.Log.Printf("Step %v / %v", j, T.Steps)
+			err = T.Save()
+			if err != nil {
+				T.Log.Println(err)
+				return err
+			}
+			helpers.Sleep(1)
+			j++
+		}
+		helpers.Sleep(5)
+
+	}
+
+	err = guildStore.SaveMembers()
+	if err != nil {
+		T.Log.Println(err)
+		return err
+	}
+
+	err = guildStore.Save()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (T *Task) ParseMembersUser() (err error) {
+
+	T.CurrentStep = 0
+	guildStore, err := guild.NewStore(T.GuildId, T.GuildName, T.Config)
+	err = guildStore.Save()
+	if err != nil {
+		return err
+	}
+	err = guildStore.LoadMembers()
+	fmt.Println(guildStore.MembersIds)
+
+	T.Da.Session.AddHandler(func(s *discordgo.Session, m *discordgo.Event) {
+		//T.Log.Printf("event: %+v\n", m.Type)
+		if m.Type == "GUILD_MEMBER_LIST_UPDATE" {
+
+			var i GuildMemberListUpdateEventAuto
+			if err = json.Unmarshal(m.RawData, &i); err != nil {
+				T.Log.Println(err)
+			}
+			memCount := 0
+			for _, op := range i.Ops {
+				for _, item := range op.Items {
+					if item.Member.User.ID != "" {
+						//T.ParseMemberIds[item.Member.User.ID] = item.Member.User.ID
+						guildStore.MembersIds[item.Member.User.ID] = guild.Member{
+							MemberId: item.Member.User.ID,
+						}
+						T.Log.Printf("%v %v", item.Member.User.ID, item.Member.User.Username)
+						memCount++
+						T.ParseCount++ // = len(T.ParseMemberIds)
+					}
+				}
+			}
+
 			if len(i.Ops[0].Range) > 0 {
 				T.Log.Printf("Range %+v | memCount %v", i.Ops[0].Range, memCount)
 			}
@@ -290,3 +375,38 @@ type GuildMemberListUpdateEventAuto struct {
 		Range []int  `json:"range"`
 	} `json:"ops"`
 }
+
+type GuildMembersChunk struct {
+	GuildID string `json:"guild_id"`
+	Members []struct {
+		GuildID      string    `json:"guild_id"`
+		JoinedAt     Timestamp `json:"joined_at"`
+		Nick         string    `json:"nick"`
+		Deaf         bool      `json:"deaf"`
+		Mute         bool      `json:"mute"`
+		User         *User     `json:"user"`
+		Roles        []string  `json:"roles"`
+		PremiumSince Timestamp `json:"premium_since"`
+		Pending      bool      `json:"pending"`
+	}
+}
+
+type User struct {
+	ID            string    `json:"id"`
+	Email         string    `json:"email"`
+	Username      string    `json:"username"`
+	Avatar        string    `json:"avatar"`
+	Locale        string    `json:"locale"`
+	Discriminator string    `json:"discriminator"`
+	Token         string    `json:"token"`
+	Verified      bool      `json:"verified"`
+	MFAEnabled    bool      `json:"mfa_enabled"`
+	Bot           bool      `json:"bot"`
+	PublicFlags   UserFlags `json:"public_flags"`
+	PremiumType   int       `json:"premium_type"`
+	System        bool      `json:"system"`
+	Flags         int       `json:"flags"`
+}
+
+type Timestamp string
+type UserFlags int

@@ -167,7 +167,15 @@ func (T *Task) Start() (err error) {
 	if T.TypeTask == TypeTaskParseAll {
 		T.Log.Println("Task Parse all")
 		if T.Status == StatusCreated {
-			//
+			dir := T.Config.PathToStorage + "guilds/" + T.GuildId
+			filename := dir + "/" + T.GuildId + ".members"
+			if helpers.FileExists(filename) {
+				if err = os.Remove(filename); err != nil {
+					T.SetError(err)
+					T.Stop()
+					return err
+				}
+			}
 		}
 
 		T.Status = StatusWorking
