@@ -2,6 +2,7 @@ package task
 
 import (
 	"encoding/json"
+	"fmt"
 	"la_discord_bot/internal/discordacc"
 	"la_discord_bot/internal/discordgo"
 	"la_discord_bot/internal/guild"
@@ -55,7 +56,29 @@ func (T *Task) ParseMembers() (err error) {
 		}
 
 	}
+	return nil
+}
 
+func (T *Task) ParseMembersAll() (err error) {
+	T.Log.Println("Parsing All members in the guild")
+	T.Da, err = discordacc.New(T.Token, "Bot", true)
+	defer T.Da.Close()
+
+	if err != nil {
+		T.Log.Printf("ERROR Task Parse All Members Starting: " + fmt.Sprint(err))
+		T.SetError(err)
+		return err
+	}
+	T.Log.Println("Logged in. ID: " + T.Da.User.ID)
+	T.UserId = T.Da.User.ID
+	T.GuildMemberCount = T.Da.Guilds[T.GuildId].MemberCount
+
+	if !T.Da.User.Bot {
+		if T.GuildMemberCount > 0 {
+			T.Steps = int(math.Round(float64(T.GuildMemberCount)/100)) + 1
+		}
+		fmt.Println(T.Da.Guilds[T.GuildId].MemberCount)
+	}
 	return nil
 }
 
@@ -76,7 +99,6 @@ func (T *Task) ParseMembersUser() (err error) {
 			if err = json.Unmarshal(m.RawData, &i); err != nil {
 				T.Log.Println(err)
 			}
-
 			memCount := 0
 			for _, op := range i.Ops {
 				for _, item := range op.Items {
@@ -92,6 +114,7 @@ func (T *Task) ParseMembersUser() (err error) {
 				}
 			}
 
+			fmt.Println(memCount)
 			if len(i.Ops[0].Range) > 0 {
 				T.Log.Printf("Range %+v | memCount %v", i.Ops[0].Range, memCount)
 			}
@@ -145,7 +168,6 @@ func (T *Task) ParseMembersUser() (err error) {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 

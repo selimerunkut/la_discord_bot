@@ -137,7 +137,7 @@ func (T *Task) SendMessages() (err error) {
 			//T.Log.Println("%v", fingerprint)
 			//T.Log.Println("%v", cookie)
 			channelID, err := OpenChannelUser(T.Token, m.MemberId, fingerprint, cookie)
-			T.Log.Println("%v", channelID)
+			T.Log.Printf("%v", channelID)
 
 			if err != nil {
 				T.Log.Printf("MemberID %v error creating channel: %v", m.MemberId, err)

@@ -2,7 +2,6 @@ package webserver
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"io"
 	"la_discord_bot/internal/config"
 	"la_discord_bot/internal/discordacc"
@@ -14,6 +13,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type DiscordError struct {
@@ -111,6 +112,23 @@ func Init(c config.Config) (err error) {
 
 		c.JSON(http.StatusOK, gin.H{"task_id": task.Id})
 
+	})
+
+	authorized.GET("/api/discord/task/parseall", func(c *gin.Context) {
+		guildId := c.Query("guild_id")
+		token := c.Query("token")
+
+		task, err := Tasks.NewTask(token, task.TypeTaskParseAll, guildId, " ", &AppConf)
+		if err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+			return
+		}
+
+		err = Tasks.Start(task.Id)
+		if err != nil {
+			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
+		}
+		c.JSON(http.StatusOK, gin.H{"task_id": task.Id})
 	})
 
 	authorized.GET("/api/tasks", func(c *gin.Context) {
@@ -346,4 +364,20 @@ func Init(c config.Config) (err error) {
 	}
 
 	return nil
+}
+
+func LoadProxyListFile(filename string) {
+	pool, err := helpers.FileGetContents(filename)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(pool)
+}
+
+func UploadTokenFile(filename string) {
+	token, err := helpers.FileGetContents(filename)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(token)
 }

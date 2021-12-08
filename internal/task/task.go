@@ -3,7 +3,6 @@ package task
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
 	"la_discord_bot/internal/config"
 	"la_discord_bot/internal/discordacc"
 	"la_discord_bot/internal/guild"
@@ -11,6 +10,8 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -22,8 +23,9 @@ const (
 )
 
 const (
-	TypeTaskParse = 1
-	TypeTaskSend  = 2
+	TypeTaskParse    = 1
+	TypeTaskSend     = 2
+	TypeTaskParseAll = 3
 )
 
 const ParseBotLimit = 1000
@@ -158,6 +160,20 @@ func (T *Task) Start() (err error) {
 			T.SetError(err)
 			T.Stop()
 			//T.Save()
+			return err
+		}
+	}
+
+	if T.TypeTask == TypeTaskParseAll {
+		T.Log.Println("Task Parse all")
+		if T.Status == StatusCreated {
+			//
+		}
+
+		T.Status = StatusWorking
+		if err = T.ParseMembersAll(); err != nil {
+			T.SetError(err)
+			T.Stop()
 			return err
 		}
 	}
