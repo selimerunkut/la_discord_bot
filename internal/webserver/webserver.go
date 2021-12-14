@@ -114,7 +114,7 @@ func Init(c config.Config) (err error) {
 
 	})
 
-	authorized.GET("/api/discord/task/parseall", func(c *gin.Context) {
+	/* authorized.GET("/api/discord/task/parseall", func(c *gin.Context) {
 		guildId := c.Query("guild_id")
 		token := c.Query("token")
 
@@ -129,7 +129,7 @@ func Init(c config.Config) (err error) {
 			c.JSON(http.StatusForbidden, gin.H{"error": err.Error()})
 		}
 		c.JSON(http.StatusOK, gin.H{"task_id": task.Id})
-	})
+	}) */
 
 	authorized.GET("/api/tasks", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"tasks": Tasks.TasksSlice()})

@@ -57,6 +57,7 @@ function form() {
                 const splitEmailToken = emailWithToken.split(":");
                 return splitEmailToken[splitEmailToken.length - 1];
             });
+            document.querySelector('#getInfoButton').click();
         },
         sendTaskButtonClick: async function (event) {
             this.errorSend = false;
@@ -98,28 +99,47 @@ function form() {
             this.clientId = "";
 
             let auth = "Bot"; //document.getElementById("auth").value
-            let token = document.getElementById("token").value;
-            let response = await fetch(
-                "/api/discord/UserByToken?auth=" + auth + "&token=" + token
-            );
+            let tokens = [];
 
-            if (response.ok) {
-                let json = await response.json();
-                this.acc = json.user;
-                // console.log(this.acc)
-                this.guilds = json.guilds;
-                // console.log(this.guilds)
-                // this.selectGuildsChange()
+            if (this.tokens.length == 0) {
+                tokens.append(document.getElementById("token").value);
             } else {
-                let json = { error: "" };
-                try {
-                    json = await response.json();
-                } catch (e) {
-                    json = { error: "505 Internal Server Error" };
+                tokens = this.tokens;
+            }
+
+            let isSuccess = false;
+            
+            for(const [idx, token] of tokens.entries()) {
+                let response = await fetch(
+                    "/api/discord/UserByToken?auth=" + auth + "&token=" + token
+                );
+                
+                
+                if (response.ok) {
+                    let json = await response.json();
+                    this.acc = json.user;
+                    // console.log(this.acc)
+                    this.guilds = json.guilds;
+                    isSuccess = true;
+                    break;
+                    // console.log(this.guilds)
+                    // this.selectGuildsChange()
+                } else {
+                    let json = { error: "" };
+                    try {
+                        json = await response.json();
+                    } catch (e) {
+                        json = { error: "505 Internal Server Error" };
+                    }
+                    console.log(json);
+                    this.errorGetInfo = `${json.error} Retrying... (${idx + 1})`;
+                    // alert("HTTP-Error: " + response.status);
                 }
-                console.log(json);
-                this.errorGetInfo = json.error;
-                // alert("HTTP-Error: " + response.status);
+            }
+            if (!isSuccess) {
+                this.errorGetInfo = "All tokens failed";
+            } else {
+                this.errorGetInfo = "";
             }
             this.rs = false;
         },

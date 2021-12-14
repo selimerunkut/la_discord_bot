@@ -59,6 +59,7 @@ func (T *Task) ParseMembers() (err error) {
 	return nil
 }
 
+/*
 func (T *Task) ParseMembersAll() (err error) {
 	T.Da, err = discordacc.New(T.Token, "Bot", true)
 	defer T.Da.Close()
@@ -74,8 +75,6 @@ func (T *Task) ParseMembersAll() (err error) {
 	if err != nil {
 		return err
 	}
-	err = guildStore.LoadMembers()
-	fmt.Println(guildStore.MembersIds)
 
 	T.Da.Session.AddHandler(func(s *discordgo.Session, m *discordgo.Event) {
 		//T.Log.Printf("event: %+v\n", m.Type)
@@ -124,7 +123,6 @@ func (T *Task) ParseMembersAll() (err error) {
 	channels := currGuild.Channels
 	for _, channel := range channels {
 		channelId := channel.ID
-
 		err = T.Da.Session.RequestLazyGuildMembers(T.GuildId, channelId, [][]int{{0, 99}}, true, false, true, []int{})
 		if err != nil {
 			T.Log.Println("RequestLazyGuildMembers error: ", err)
@@ -165,7 +163,7 @@ func (T *Task) ParseMembersAll() (err error) {
 		return err
 	}
 	return nil
-}
+} */
 func (T *Task) ParseMembersUser() (err error) {
 
 	T.CurrentStep = 0

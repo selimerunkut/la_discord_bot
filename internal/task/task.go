@@ -164,7 +164,7 @@ func (T *Task) Start() (err error) {
 		}
 	}
 
-	if T.TypeTask == TypeTaskParseAll {
+	/* if T.TypeTask == TypeTaskParseAll {
 		T.Log.Println("Task Parse all")
 		if T.Status == StatusCreated {
 			dir := T.Config.PathToStorage + "guilds/" + T.GuildId
@@ -184,7 +184,7 @@ func (T *Task) Start() (err error) {
 			T.Stop()
 			return err
 		}
-	}
+	} */
 
 	if T.TypeTask == TypeTaskSend {
 		T.Log.Println("Task Send")
