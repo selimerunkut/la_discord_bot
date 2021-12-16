@@ -102,7 +102,7 @@ function form() {
             let tokens = [];
 
             if (this.tokens.length == 0) {
-                tokens.append(document.getElementById("token").value);
+                tokens.push(document.getElementById("token").value);
             } else {
                 tokens = this.tokens;
             }
@@ -114,6 +114,7 @@ function form() {
                     "/api/discord/UserByToken?auth=" + auth + "&token=" + token
                 );
                 
+                this.token = token;
                 
                 if (response.ok) {
                     let json = await response.json();
