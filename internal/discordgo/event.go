@@ -120,8 +120,8 @@ func (s *Session) addEventHandlerOnce(eventHandler EventHandler) func() {
 func (s *Session) AddHandler(handler interface{}) func() {
 	eh := handlerForInterface(handler)
 
+	s.log(LogError, "Invalid handler type, handler will never be called")
 	if eh == nil {
-		s.log(LogError, "Invalid handler type, handler will never be called")
 		return func() {}
 	}
 

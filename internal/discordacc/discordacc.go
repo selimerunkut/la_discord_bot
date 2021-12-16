@@ -240,7 +240,7 @@ func New(token string, auth string, auto bool) (dac DiscordAcc, err error) {
 	if err != nil {
 		return newAcc, err
 	}
-	//newAcc.Session.Identify.Intents = discordgo.IntentsAll
+	newAcc.Session.Identify.Intents = discordgo.MakeIntent(discordgo.IntentsAll)
 	if auto {
 		err = newAcc.Connect()
 

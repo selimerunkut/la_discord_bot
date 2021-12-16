@@ -909,9 +909,23 @@ type requestLazyData struct {
 	Channels   map[string][][]int `json:"channels"`
 }
 
+type requestFullGuildData struct {
+	GuildID   string   `json:"guild_id"`
+	Query     string   `json:"query,omitempty"`
+	Limit     int      `json:"limit,omitempty"`
+	Presences bool     `json:"presences"`
+	UserIds   []string `json:"user_ids,omitempty"`
+	Nonce     string   `json:"nonce,omitempty"`
+}
+
 type requestLazyOp struct {
 	Op   int             `json:"op"`
 	Data requestLazyData `json:"d"`
+}
+
+type requestFullGuildOp struct {
+	Op            int                  `json:"op"`
+	FullGuildData requestFullGuildData `json:"d"`
 }
 
 func (s *Session) RequestLazyGuildMembers(guildID string, channel string, pages [][]int, typing bool, threads bool, activities bool, members []int) (err error) {
@@ -935,6 +949,38 @@ func (s *Session) RequestLazyGuildMembers(guildID string, channel string, pages 
 
 	}
 	err = s.requestLazyGuildMembers(data)
+	return
+}
+
+func (s *Session) RequestFullGuildMembers(guildID string) (err error) {
+	data := requestFullGuildData{
+		GuildID:   guildID,
+		Query:     "",
+		Limit:     0,
+		Presences: false,
+		UserIds:   []string{},
+		Nonce:     "",
+	}
+	err = s.requestFullGuildMembers(data)
+	if err != nil {
+		return err
+	}
+	fmt.Print("in RequestFullGuildMembers")
+	return nil
+}
+
+func (s *Session) requestFullGuildMembers(data requestFullGuildData) (err error) {
+	s.RLock()
+	defer s.RUnlock()
+	if s.wsConn == nil {
+		return ErrWSNotFound
+	}
+
+	s.wsMutex.Lock()
+	err = s.wsConn.WriteJSON(requestFullGuildOp{8, data})
+	s.wsMutex.Unlock()
+	fmt.Print("in requestFullGuildMembers")
+
 	return
 }
 

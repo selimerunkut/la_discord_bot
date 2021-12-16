@@ -37,7 +37,7 @@
             </datalist>
         <div class="col-auto p-2">
             <input type="file" id="uploadFileInput" x-on:change="handleFileUpload" style="display:none" />
-            <button type="button" class="btn btn-primary" x-on:click="initFileUpload">Upload File Containing Tokens</button>
+            <button type="button" class="btn btn-primary" x-on:click="initFileUpload">Use tokens from uploaded file</button>
         </div>
         <div x-bind:class="acc ? 'bg-light border' : ''" class="col-auto p-2 px-3 ms-2">
             <template x-if="acc">

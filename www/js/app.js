@@ -5,18 +5,18 @@ function form() {
             2: "Working",
             3: "Stopped",
             4: "Done",
-            5: "Error"
+            5: "Error",
         },
         taskStatusToClass: {
             1: "",
             2: "alert-primary",
             3: "alert-secondary",
             4: "alert-success",
-            5: "alert-danger"
+            5: "alert-danger",
         },
         taskTypeToText: {
             1: "Parse",
-            2: "Send"
+            2: "Send",
         },
         rs: false,
         send: {
@@ -47,217 +47,257 @@ function form() {
         clientId: "",
         invite: "",
         initFileUpload: function () {
-            document.querySelector('#uploadFileInput').click();
+            document.querySelector("#uploadFileInput").click();
         },
         handleFileUpload: async function (event) {
             const file = event.target.files[0];
-            let content = await file.text()
+            let content = await file.text();
             content = content.trim();
-            this.tokens = content.split("\n").map(emailWithToken => {
+            this.tokens = content.split("\n").map((emailWithToken) => {
                 const splitEmailToken = emailWithToken.split(":");
                 return splitEmailToken[splitEmailToken.length - 1];
             });
+            document.querySelector('#getInfoButton').click();
         },
         sendTaskButtonClick: async function (event) {
-            this.errorSend = false
-            this.send.token = this.token
-            let response = await fetch('/api/tasks/send', {
-                method: 'POST',
+            this.errorSend = false;
+            this.send.token = this.token;
+            let response = await fetch("/api/tasks/send", {
+                method: "POST",
                 headers: {
-                    'Content-Type': 'application/json;charset=utf-8'
+                    "Content-Type": "application/json;charset=utf-8",
                 },
-                body: JSON.stringify(this.send)
+                body: JSON.stringify(this.send),
             });
             if (response.ok) {
                 let json = await response.json();
-                this.updateTasks()
-                this.successMessage = "Send Task Created"
+                this.updateTasks();
+                this.successMessage = "Send Task Created";
             } else {
-                let json = { error: "" }
+                let json = { error: "" };
                 try {
                     json = await response.json();
                 } catch (e) {
-                    json = { error: "505 Internal Server Error"}
+                    json = { error: "505 Internal Server Error" };
                 }
-                console.log(json)
-                this.errorSend = json.error
+                console.log(json);
+                this.errorSend = json.error;
             }
-
         },
         getInfoButtonClick: async function (event) {
             // console.log(event)
-            this.rs = true
-            this.acc = false
-            this.guilds = false
-            this.currentGuildId = false
-            this.currentChannelId = false
-            this.errorGetInfo = false
-            this.errorJoin = false
-            this.errorParse = false
-            this.errorSend = false
-            this.successMessage = false
-            this.clientId = ""
+            this.rs = true;
+            this.acc = false;
+            this.guilds = false;
+            this.currentGuildId = false;
+            this.currentChannelId = false;
+            this.errorGetInfo = false;
+            this.errorJoin = false;
+            this.errorParse = false;
+            this.errorSend = false;
+            this.successMessage = false;
+            this.clientId = "";
 
-            let auth = "Bot" //document.getElementById("auth").value
-            let token = document.getElementById("token").value
-            let response = await fetch("/api/discord/UserByToken?auth=" + auth + "&token=" + token);
+            let auth = "Bot"; //document.getElementById("auth").value
+            let tokens = [];
 
-            if (response.ok) {
-                let json = await response.json();
-                this.acc = json.user
-                // console.log(this.acc)
-                this.guilds = json.guilds
-                // console.log(this.guilds)
-                // this.selectGuildsChange()
+            if (this.tokens.length == 0) {
+                tokens.append(document.getElementById("token").value);
             } else {
-                let json = { error: "" }
-                try {
-                    json = await response.json();
-                } catch (e) {
-                    json = { error: "505 Internal Server Error"}
-                }
-                console.log(json)
-                this.errorGetInfo = json.error
-                // alert("HTTP-Error: " + response.status);
+                tokens = this.tokens;
             }
-            this.rs = false
-        },
-        selectGuildsChange: function (event) {
-            this.currentGuildId = document.getElementById("guilds").value
-        },
-        parseMembersButtonClick: async function (event) {
-            this.rs = true
-            this.errorParse = false
-            this.successMessage = false
 
-            let channel = ""
-            // console.log(channel)
-            try {
-                // console.log(document.getElementById("channels").value)
-                channel = document.getElementById("channels").value
-            }
-            catch (e) {
-                channel = ""
-                // console.log(e)
-            }
-            // console.log(channel)
-            let token = document.getElementById("token").value
-            // let response = await fetch("/api/discord/ParseMembers?token=" + token + "&guild_id=" + this.currentGuildId);
-            if (channel == "all"){
-                let response = await fetch("/api/discord/task/parseall?token=" + token + "&guild_id=" + this.currentGuildId);
-            } else {
-                let response = await fetch("/api/discord/task/parse?token=" + token + "&guild_id=" + this.currentGuildId + "&channel_id=" + channel);
-            }
-            if (response.ok) {
-                let json = await response.json();
-                await this.updateTasks()
-                this.successMessage = "Parse Task Created"
-                // console.log(json)
-            } else {
-                let json = { error: "" }
-                try {
-                    json = await response.json();
-                } catch (e) {
-                    json = { error: "505 Internal Server Error"}
-                }
-                console.log(json)
-                this.errorParse = json.error
-                // alert("HTTP-Error: " + response.status );
-            }
-            this.rs = false
-        },
-        joinButtonClick: async function (event) {
-            this.rs = true
-            this.errorJoin = false
-
-            let token = document.getElementById("token").value
-            if (this.invite !== "") {
-                let response = await fetch("/api/discord/joinGuild?token=" + token + "&invite_code=" + this.invite);
+            let isSuccess = false;
+            
+            for(const [idx, token] of tokens.entries()) {
+                let response = await fetch(
+                    "/api/discord/UserByToken?auth=" + auth + "&token=" + token
+                );
+                
+                
                 if (response.ok) {
                     let json = await response.json();
-                    this.acc = json.user
+                    this.acc = json.user;
                     // console.log(this.acc)
-                    this.guilds = json.guilds
-                    console.log(json)
-                    this.invite = ""
-                    this.successMessage = "Join Success"
+                    this.guilds = json.guilds;
+                    isSuccess = true;
+                    break;
+                    // console.log(this.guilds)
+                    // this.selectGuildsChange()
                 } else {
-                    let json = { error: "" }
+                    let json = { error: "" };
                     try {
                         json = await response.json();
                     } catch (e) {
-                        json = { error: "505 Internal Server Error"}
+                        json = { error: "505 Internal Server Error" };
                     }
-                    console.log(json)
-                    this.errorJoin = json.error
+                    console.log(json);
+                    this.errorGetInfo = `${json.error} Retrying... (${idx + 1})`;
+                    // alert("HTTP-Error: " + response.status);
+                }
+            }
+            if (!isSuccess) {
+                this.errorGetInfo = "All tokens failed";
+            } else {
+                this.errorGetInfo = "";
+            }
+            this.rs = false;
+        },
+        selectGuildsChange: function (event) {
+            this.currentGuildId = document.getElementById("guilds").value;
+        },
+        parseMembersButtonClick: async function (event) {
+            this.rs = true;
+            this.errorParse = false;
+            this.successMessage = false;
+
+            let channel = "";
+            // console.log(channel)
+            try {
+                // console.log(document.getElementById("channels").value)
+                channel = document.getElementById("channels").value;
+            } catch (e) {
+                channel = "";
+                // console.log(e)
+            }
+            // console.log(channel)
+            let token = document.getElementById("token").value;
+            let response;
+            // let response = await fetch("/api/discord/ParseMembers?token=" + token + "&guild_id=" + this.currentGuildId);
+            if (channel == "all") {
+                response = await fetch(
+                    "/api/discord/task/parseall?token=" +
+                        token +
+                        "&guild_id=" +
+                        this.currentGuildId
+                );
+            } else {
+                response = await fetch(
+                    "/api/discord/task/parse?token=" +
+                        token +
+                        "&guild_id=" +
+                        this.currentGuildId +
+                        "&channel_id=" +
+                        channel
+                );
+            }
+            if (response.ok) {
+                let json = await response.json();
+                await this.updateTasks();
+                this.successMessage = "Parse Task Created";
+                console.log(json);
+            } else {
+                let json = { error: "" };
+                try {
+                    json = await response.json();
+                } catch (e) {
+                    json = { error: "505 Internal Server Error" };
+                }
+                console.log(json);
+                this.errorParse = json.error;
+                // alert("HTTP-Error: " + response.status );
+            }
+            this.rs = false;
+        },
+        joinButtonClick: async function (event) {
+            this.rs = true;
+            this.errorJoin = false;
+
+            let token = document.getElementById("token").value;
+            if (this.invite !== "") {
+                let response = await fetch(
+                    "/api/discord/joinGuild?token=" +
+                        token +
+                        "&invite_code=" +
+                        this.invite
+                );
+                if (response.ok) {
+                    let json = await response.json();
+                    this.acc = json.user;
+                    // console.log(this.acc)
+                    this.guilds = json.guilds;
+                    console.log(json);
+                    this.invite = "";
+                    this.successMessage = "Join Success";
+                } else {
+                    let json = { error: "" };
+                    try {
+                        json = await response.json();
+                    } catch (e) {
+                        json = { error: "505 Internal Server Error" };
+                    }
+                    console.log(json);
+                    this.errorJoin = json.error;
                     // alert("HTTP-Error: " + response.status );
                 }
-                this.rs = false
+                this.rs = false;
             }
         },
         init() {
-            this.updateTasks()
-            setInterval(function () {document.getElementById('refreshTasksButton').click()}, 10000)
+            this.updateTasks();
+            setInterval(function () {
+                document.getElementById("refreshTasksButton").click();
+            }, 10000);
         },
         refreshTasksButtonClick: function (event) {
-            this.updateTasks()
+            this.updateTasks();
         },
         deleteTaskButtonClick: function (task_id) {
             // console.log(task_id)
-            let result = confirm("Are you sure to delete task?")
+            let result = confirm("Are you sure to delete task?");
             if (result) {
-                self = this
-                fetch('/api/tasks/delete?task_id='+task_id)
-                    .then(response => response.json())
-                    .then(tasks => {
-                        self.tasks = tasks.tasks
+                self = this;
+                fetch("/api/tasks/delete?task_id=" + task_id)
+                    .then((response) => response.json())
+                    .then((tasks) => {
+                        self.tasks = tasks.tasks;
                         // console.log(tasks)
-                    })
+                    });
             }
         },
         stopTaskButtonClick: function (task_id) {
             // console.log(task_id)
-            let result = confirm("Are you sure to stop task?")
+            let result = confirm("Are you sure to stop task?");
             if (result) {
-                self = this
-                fetch('/api/tasks/stop?task_id='+task_id)
-                    .then(response => response.json())
-                    .then(tasks => {
-                        self.tasks = tasks.tasks
+                self = this;
+                fetch("/api/tasks/stop?task_id=" + task_id)
+                    .then((response) => response.json())
+                    .then((tasks) => {
+                        self.tasks = tasks.tasks;
                         // console.log(tasks)
-                    })
+                    });
             }
         },
         resumeTaskButtonClick: function (task_id) {
             // console.log(task_id)
-            let result = confirm("Are you sure to resume task?")
+            let result = confirm("Are you sure to resume task?");
             if (result) {
-                self = this
-                fetch('/api/tasks/resume?task_id='+task_id)
-                    .then(response => response.json())
-                    .then(tasks => {
-                        self.tasks = tasks.tasks
+                self = this;
+                fetch("/api/tasks/resume?task_id=" + task_id)
+                    .then((response) => response.json())
+                    .then((tasks) => {
+                        self.tasks = tasks.tasks;
                         // console.log(tasks)
-                    })
+                    });
             }
         },
         updateTasks: function () {
-            self = this
-            fetch('/api/tasks')
-                .then(response => response.json())
-                .then(tasks => {
-                    self.tasks = tasks.tasks
-                    console.log(tasks)
-                })
+            self = this;
+            fetch("/api/tasks")
+                .then((response) => response.json())
+                .then((tasks) => {
+                    self.tasks = tasks.tasks;
+                    console.log(tasks);
+                });
         },
         updateGuildStores: function () {
-            self = this
-            fetch('/api/guilds/store')
-                .then(response => response.json())
-                .then(stores => {
-                    self.guildStores = stores.stores
-                    console.log(stores)
-                })
+            self = this;
+            fetch("/api/guilds/store")
+                .then((response) => response.json())
+                .then((stores) => {
+                    self.guildStores = stores.stores;
+                    console.log(stores);
+                });
         },
     };
 }
